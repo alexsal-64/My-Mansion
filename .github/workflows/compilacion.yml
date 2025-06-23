@@ -8,6 +8,7 @@ on:
 
 jobs:
   build-linux-glibc227:
+    name: Build Linux (GLIBC 2.27, Ubuntu 18.04)
     runs-on: ubuntu-latest
     container:
       image: ubuntu:18.04
@@ -17,12 +18,12 @@ jobs:
           apt-get update
           apt-get install -y build-essential cmake git pkg-config libgl1-mesa-dev \
             libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
-      - name: Descargar y compilar raylib
+      - name: Descargar y compilar raylib (estático, GLFW interno)
         run: |
           git clone --branch 4.5.0 https://github.com/raysan5/raylib.git
           cd raylib
           mkdir build && cd build
-          cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release ..
+          cmake -DBUILD_SHARED_LIBS=OFF -DPLATFORM=Desktop -DUSE_EXTERNAL_GLFW=OFF -DCMAKE_BUILD_TYPE=Release ..
           make -j$(nproc)
           make install
           cd ../..
