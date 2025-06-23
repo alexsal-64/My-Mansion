@@ -1,1 +1,31 @@
+name: Compilacion Linux GLIBC 2.27
 
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-linux-glibc227:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:18.04
+    steps:
+      - name: Instalar dependencias
+        run: |
+          apt-get update
+          apt-get install -y build-essential cmake pkg-config libgl1-mesa-dev libraylib-dev git
+      - name: Checkout del código
+        uses: actions/checkout@v4
+      - name: Compilar el proyecto
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make
+      - name: Guardar binario de prueba
+        uses: actions/upload-artifact@v4
+        with:
+          name: mansion-linux-glibc227
+          path: build/bin/
