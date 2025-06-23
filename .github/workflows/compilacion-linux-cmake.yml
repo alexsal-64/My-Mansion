@@ -18,7 +18,7 @@ jobs:
           docker run --rm -v ${{ github.workspace }}:/project -w /project ubuntu:18.04 bash -c "
             set -e
             apt-get update &&
-            DEBIAN_FRONTEND=noninteractive apt-get install -y gcc make git wget tar \
+            DEBIAN_FRONTEND=noninteractive apt-get install -y gcc g++ make git wget tar \
               libglfw3-dev libgl-dev libxcursor-dev libxinerama-dev libxi-dev \
               libx11-dev libxrandr-dev &&
             # Instala CMake moderno desde binario oficial
