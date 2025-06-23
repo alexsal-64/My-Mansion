@@ -1,4 +1,4 @@
-name: Compile Raylib Project with CMake (Ubuntu 18.04)
+name: Compile Raylib Project with CMake (Ubuntu 18.04 + Modern CMake)
 
 on:
   push:
@@ -13,13 +13,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Compile in Ubuntu 18.04 Docker container with CMake
+      - name: Compile in Ubuntu 18.04 Docker container with Modern CMake
         run: |
           docker run --rm -v ${{ github.workspace }}:/project -w /project ubuntu:18.04 bash -c "
             apt-get update &&
-            DEBIAN_FRONTEND=noninteractive apt-get install -y gcc make git cmake \
+            DEBIAN_FRONTEND=noninteractive apt-get install -y gcc make git wget tar python3-pip \
               libglfw3-dev libgl-dev libxcursor-dev libxinerama-dev libxi-dev \
               libx11-dev libxrandr-dev &&
+            pip3 install cmake==3.25.3 &&
             git clone https://github.com/raysan5/raylib.git &&
             cd raylib &&
             mkdir build && cd build &&
