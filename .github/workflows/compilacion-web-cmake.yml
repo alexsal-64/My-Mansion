@@ -31,19 +31,26 @@ jobs:
           emcmake cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=$(pwd)/../dist ..
           emmake make -j2
           make install
-          cd /home/runner/work/My-Mansion/My-Mansion
+          cd $GITHUB_WORKSPACE
 
-      - name: Build game for Web with CMake
+      - name: Build game for Web with CMake (with raylib include/lib paths)
         run: |
           source $EMSDK_ENV
-          emcmake cmake -B build-web-cmake -DCMAKE_BUILD_TYPE=Release
+          emcmake cmake -B build-web-cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/raylib/dist"
           cmake --build build-web-cmake --config Release
+        working-directory: ${{ github.workspace }}
 
       - name: Copy and prepare web artifacts
         run: |
           mkdir -p build-web-cmake-dist
           cp build-web-cmake/bin/mansion.* build-web-cmake-dist/ || true
           cp -r assets build-web-cmake-dist/ || true
+
+      - name: List build-web-cmake-dist for debug
+        run: |
+          ls -lh build-web-cmake-dist || true
 
       - name: Upload web artifacts
         uses: actions/upload-artifact@v4
