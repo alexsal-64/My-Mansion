@@ -1,0 +1,38 @@
+name: Compile Raylib Project with CMake (Ubuntu 18.04)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile in Ubuntu 18.04 Docker container with CMake
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/project -w /project ubuntu:18.04 bash -c "
+            apt-get update &&
+            DEBIAN_FRONTEND=noninteractive apt-get install -y gcc make git cmake \
+              libglfw3-dev libgl-dev libxcursor-dev libxinerama-dev libxi-dev \
+              libx11-dev libxrandr-dev &&
+            git clone https://github.com/raysan5/raylib.git &&
+            cd raylib &&
+            mkdir build && cd build &&
+            cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/usr .. &&
+            make -j2 && make install &&
+            cd /project &&
+            mkdir -p build-cmake &&
+            cmake -B build-cmake &&
+            cmake --build build-cmake --config Release
+          "
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: my_mansion-linux-cmake
+          path: build-cmake/bin/
