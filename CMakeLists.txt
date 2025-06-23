@@ -19,6 +19,9 @@ if(EMSCRIPTEN)
         set(RAYLIB_LIBRARIES raylib)
     endif()
 
+     # Hace que el binario de salida sea .html (necesario para lanzar el juego en navegador)
+    set(CMAKE_EXECUTABLE_SUFFIX ".html")
+
     add_executable(mansion ${GAME_SOURCES})
 
     # Copia assets al directorio de build antes del linkeo
