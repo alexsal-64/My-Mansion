@@ -22,8 +22,15 @@ jobs:
         run: |
           git clone --branch 4.5.0 https://github.com/raysan5/raylib.git
           cd raylib
+          rm -rf build
           mkdir build && cd build
-          cmake -DBUILD_SHARED_LIBS=OFF -DPLATFORM=Desktop -DUSE_EXTERNAL_GLFW=OFF -DCMAKE_BUILD_TYPE=Release ..
+          cmake \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DPLATFORM=Desktop \
+            -DUSE_EXTERNAL_GLFW=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DOPENGL_VERSION=3.3 \
+            ..
           make -j$(nproc)
           make install
           cd ../..
