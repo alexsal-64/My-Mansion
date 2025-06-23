@@ -1,4 +1,4 @@
-name: Compilacion Linux GLIBC 2.27
+name: Compile Raylib Project in Docker (Ubuntu 18.04)
 
 on:
   push:
@@ -7,43 +7,30 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build-linux-glibc227:
-    name: Build Linux (GLIBC 2.27, Ubuntu 18.04)
+  build:
     runs-on: ubuntu-latest
-    container:
-      image: ubuntu:18.04
     steps:
-      - name: Instalar dependencias del sistema
-        run: |
-          apt-get update
-          apt-get install -y build-essential cmake git pkg-config libgl1-mesa-dev \
-            libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
-      - name: Descargar y compilar raylib (estático, GLFW interno)
-        run: |
-          git clone --branch 4.5.0 https://github.com/raysan5/raylib.git
-          cd raylib
-          rm -rf build
-          mkdir build && cd build
-          cmake \
-            -DBUILD_SHARED_LIBS=OFF \
-            -DPLATFORM=Desktop \
-            -DUSE_EXTERNAL_GLFW=OFF \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DOPENGL_VERSION=3.3 \
-            ..
-          make -j$(nproc)
-          make install
-          cd ../..
-      - name: Checkout del código
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Compilar el proyecto
+
+      - name: Compile in Ubuntu 18.04 Docker container
         run: |
-          mkdir build
-          cd build
-          cmake ..
-          make
-      - name: Guardar binario de prueba
+          docker run --rm -v ${{ github.workspace }}:/project -w /project ubuntu:18.04 bash -c "
+            apt-get update &&
+            DEBIAN_FRONTEND=noninteractive apt-get install -y gcc make git \
+              libglfw3-dev libgl-dev libxcursor-dev libxinerama-dev libxi-dev \
+              libx11-dev libxrandr-dev &&
+            git clone https://github.com/raysan5/raylib.git &&
+            cd raylib/src &&
+            make -j2 &&
+            make install &&
+            cd /project &&
+            mkdir -p build &&
+            gcc src/*.c -Iinclude -o build/my_mansion -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+          "
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mansion-linux-glibc227
-          path: build/bin/
+          name: my_mansion-linux-glibc227
+          path: build/my_mansion
