@@ -7,12 +7,22 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 include_directories(include)
 file(GLOB GAME_SOURCES src/*.c)
 
-find_package(raylib 4.5 REQUIRED)
-
-add_executable(mansion ${GAME_SOURCES})
-
+# --- Diferenciar entre Web (Emscripten) y Nativo ---
 if(EMSCRIPTEN)
     message(STATUS "Compilando para Web con Emscripten")
+
+    # Usa los paths pasados por el workflow para raylib
+    if(DEFINED RAYLIB_INCLUDE_DIR)
+        include_directories(${RAYLIB_INCLUDE_DIR})
+    endif()
+    if(DEFINED RAYLIB_LIBRARY)
+        set(RAYLIB_LIBRARIES ${RAYLIB_LIBRARY})
+    else()
+        set(RAYLIB_LIBRARIES raylib)
+    endif()
+
+    add_executable(mansion ${GAME_SOURCES})
+
     target_link_options(mansion PRIVATE
         "SHELL:-O2"
         "SHELL:-s USE_GLFW=3"
@@ -20,9 +30,12 @@ if(EMSCRIPTEN)
         "SHELL:-s WASM=1"
         "SHELL:--preload-file assets"
     )
-    # El target_link_libraries DEBE ir después de find_package
-    target_link_libraries(mansion raylib)
+
+    target_link_libraries(mansion ${RAYLIB_LIBRARIES})
+
 else()
     message(STATUS "Compilando para plataforma nativa")
+    find_package(raylib 4.5 REQUIRED)
+    add_executable(mansion ${GAME_SOURCES})
     target_link_libraries(mansion raylib m pthread dl rt X11)
 endif()
