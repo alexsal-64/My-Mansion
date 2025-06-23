@@ -1,4 +1,4 @@
-name: Build Raylib Web Game with CMake
+name: Build Raylib Web Game with CMake (Manual Raylib for Web)
 
 on:
   push:
@@ -22,29 +22,26 @@ jobs:
           ./emsdk activate latest
           echo "EMSDK_ENV=$PWD/emsdk_env.sh" >> $GITHUB_ENV
 
-      - name: Build raylib for Web (with CMake)
+      - name: Build raylib for Web (Make, manual install)
         run: |
           source $EMSDK_ENV
           git clone --depth 1 https://github.com/raysan5/raylib.git
-          cd raylib
-          mkdir build && cd build
-          emcmake cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=$(pwd)/../dist ..
-          emmake make -j2
-          make install
-          cd $GITHUB_WORKSPACE
+          cd raylib/src
+          make PLATFORM=PLATFORM_WEB
+          mkdir -p $GITHUB_WORKSPACE/raylib_build/include
+          mkdir -p $GITHUB_WORKSPACE/raylib_build/lib
+          cp raylib.h $GITHUB_WORKSPACE/raylib_build/include/
+          cp ../src/*.h $GITHUB_WORKSPACE/raylib_build/include/ || true
+          cp libraylib.web.a $GITHUB_WORKSPACE/raylib_build/lib/libraylib.a
 
-      - name: Debug raylibConfig.cmake location
-        run: |
-          find $GITHUB_WORKSPACE/raylib/dist -name "raylibConfig.cmake" || true
-
-      - name: Build game for Web with CMake
+      - name: Build game for Web with CMake (manual raylib include/lib)
         run: |
           source $EMSDK_ENV
           emcmake cmake -B build-web-cmake \
             -DCMAKE_BUILD_TYPE=Release \
-            -Draylib_DIR="$GITHUB_WORKSPACE/raylib/dist/lib/cmake/raylib"
+            -DRAYLIB_INCLUDE_DIR="$GITHUB_WORKSPACE/raylib_build/include" \
+            -DRAYLIB_LIBRARY="$GITHUB_WORKSPACE/raylib_build/lib/libraylib.a"
           cmake --build build-web-cmake --config Release
-        working-directory: ${{ github.workspace }}
 
       - name: Prepare and list web artifacts
         run: |
