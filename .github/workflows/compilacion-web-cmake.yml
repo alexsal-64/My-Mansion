@@ -34,6 +34,11 @@ jobs:
           cp ../src/*.h $GITHUB_WORKSPACE/raylib_build/include/ || true
           cp libraylib.web.a $GITHUB_WORKSPACE/raylib_build/lib/libraylib.a
 
+      - name: Ensure assets exist
+        run: |
+          mkdir -p assets
+          echo "dummy" > assets/dummy.txt
+
       - name: Build game for Web with CMake (manual raylib include/lib)
         run: |
           source $EMSDK_ENV
