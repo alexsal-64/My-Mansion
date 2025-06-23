@@ -16,11 +16,21 @@ jobs:
       - name: Compile in Ubuntu 18.04 Docker container with Modern CMake
         run: |
           docker run --rm -v ${{ github.workspace }}:/project -w /project ubuntu:18.04 bash -c "
+            set -e
             apt-get update &&
-            DEBIAN_FRONTEND=noninteractive apt-get install -y gcc make git wget tar python3-pip \
+            DEBIAN_FRONTEND=noninteractive apt-get install -y gcc make git wget tar \
               libglfw3-dev libgl-dev libxcursor-dev libxinerama-dev libxi-dev \
               libx11-dev libxrandr-dev &&
-            pip3 install cmake==3.25.3 &&
+            # Instala CMake moderno desde binario oficial
+            wget -q https://github.com/Kitware/CMake/releases/download/v3.25.3/cmake-3.25.3-linux-x86_64.tar.gz &&
+            tar -xzf cmake-3.25.3-linux-x86_64.tar.gz &&
+            mv cmake-3.25.3-linux-x86_64 /opt/cmake-3.25.3 &&
+            ln -sf /opt/cmake-3.25.3/bin/cmake /usr/local/bin/cmake &&
+            ln -sf /opt/cmake-3.25.3/bin/ctest /usr/local/bin/ctest &&
+            ln -sf /opt/cmake-3.25.3/bin/cpack /usr/local/bin/cpack &&
+            ln -sf /opt/cmake-3.25.3/bin/cmake-gui /usr/local/bin/cmake-gui &&
+            ln -sf /opt/cmake-3.25.3/bin/cmakedoc /usr/local/bin/cmakedoc &&
+            cmake --version &&
             git clone https://github.com/raysan5/raylib.git &&
             cd raylib &&
             mkdir build && cd build &&
