@@ -16,16 +16,16 @@ jobs:
 
       - name: Setup Emscripten
         run: |
-          git clone https://github.com/emscripten-core/emsdk.git
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git
           cd emsdk
           ./emsdk install latest
           ./emsdk activate latest
           echo "EMSDK_ENV=$PWD/emsdk_env.sh" >> $GITHUB_ENV
 
-      - name: Build raylib for Web
+      - name: Build raylib for Web (with CMake)
         run: |
           source $EMSDK_ENV
-          git clone https://github.com/raysan5/raylib.git
+          git clone --depth 1 https://github.com/raysan5/raylib.git
           cd raylib
           mkdir build && cd build
           emcmake cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=$(pwd)/../dist ..
@@ -33,23 +33,24 @@ jobs:
           make install
           cd $GITHUB_WORKSPACE
 
-      - name: Build game for Web with CMake (with raylib include/lib paths)
+      - name: Debug raylibConfig.cmake location
+        run: |
+          find $GITHUB_WORKSPACE/raylib/dist -name "raylibConfig.cmake" || true
+
+      - name: Build game for Web with CMake
         run: |
           source $EMSDK_ENV
           emcmake cmake -B build-web-cmake \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/raylib/dist"
+            -Draylib_DIR="$GITHUB_WORKSPACE/raylib/dist/lib/cmake/raylib"
           cmake --build build-web-cmake --config Release
         working-directory: ${{ github.workspace }}
 
-      - name: Copy and prepare web artifacts
+      - name: Prepare and list web artifacts
         run: |
           mkdir -p build-web-cmake-dist
           cp build-web-cmake/bin/mansion.* build-web-cmake-dist/ || true
           cp -r assets build-web-cmake-dist/ || true
-
-      - name: List build-web-cmake-dist for debug
-        run: |
           ls -lh build-web-cmake-dist || true
 
       - name: Upload web artifacts
