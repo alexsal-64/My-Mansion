@@ -1,0 +1,49 @@
+name: Build Raylib Web Game
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Emscripten
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+          echo "EMSDK_ENV=$PWD/emsdk_env.sh" >> $GITHUB_ENV
+
+      - name: Build raylib for Web
+        run: |
+          source $EMSDK_ENV
+          git clone https://github.com/raysan5/raylib.git
+          cd raylib/src
+          make PLATFORM=PLATFORM_WEB
+          mkdir -p $GITHUB_WORKSPACE/raylib_build
+          cp libraylib.web.a $GITHUB_WORKSPACE/raylib_build/libraylib.a
+
+      - name: Build game for Web
+        run: |
+          source $EMSDK_ENV
+          mkdir -p build-web
+          emcc -o build-web/my_mansion.html src/*.c -O2 -s USE_GLFW=3 -s WASM=1 \
+            -Iinclude -Iraylib/src -L$GITHUB_WORKSPACE/raylib_build -lraylib \
+            --preload-file assets
+          # Si no tienes assets todavía, puedes quitar "--preload-file assets"
+
+      - name: Upload web artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: my_mansion-web
+          path: build-web/
