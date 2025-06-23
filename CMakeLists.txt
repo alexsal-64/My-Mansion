@@ -7,11 +7,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 include_directories(include)
 file(GLOB GAME_SOURCES src/*.c)
 
-# --- Diferenciar entre Web (Emscripten) y Nativo ---
 if(EMSCRIPTEN)
     message(STATUS "Compilando para Web con Emscripten")
 
-    # Usa los paths pasados por el workflow para raylib
     if(DEFINED RAYLIB_INCLUDE_DIR)
         include_directories(${RAYLIB_INCLUDE_DIR})
     endif()
@@ -23,12 +21,21 @@ if(EMSCRIPTEN)
 
     add_executable(mansion ${GAME_SOURCES})
 
+    # Copia assets al directorio de build antes del linkeo
+    add_custom_command(TARGET mansion PRE_LINK
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets
+        ${CMAKE_BINARY_DIR}/assets
+        COMMENT "Copiando assets al directorio de build..."
+    )
+
+    # El ejecutable queda en bin/, así que assets está un nivel arriba
     target_link_options(mansion PRIVATE
         "SHELL:-O2"
         "SHELL:-s USE_GLFW=3"
         "SHELL:-s ASYNCIFY=1"
         "SHELL:-s WASM=1"
-        "SHELL:--preload-file assets"
+        "SHELL:--preload-file ../assets"
     )
 
     target_link_libraries(mansion ${RAYLIB_LIBRARIES})
