@@ -1,4 +1,5 @@
 #include "scene_settings.h"
+#include "scene_manager.h"
 #include <raylib.h>
 #include <stdio.h>
 
@@ -55,9 +56,7 @@ void SceneSettings_Update(void) {
 
     // Volver al menú
     if (IsKeyPressed(KEY_ESCAPE)) {
-        // Cambia a la escena del menú (debes definir SceneManager_Change externamente)
-        extern void SceneManager_Change(int newScene);
-        SceneManager_Change(1); // 1 debe corresponder a SCENE_MENU en tu enum
+        SceneManager_Change(SCENE_MENU);
     }
 }
 
