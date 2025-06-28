@@ -5,7 +5,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(include)
-file(GLOB GAME_SOURCES src/*.c)
+file(GLOB_RECURSE GAME_SOURCES src/*.c)
 
 if(EMSCRIPTEN)
     message(STATUS "Compilando para Web con Emscripten")
