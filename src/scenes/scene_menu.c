@@ -1,4 +1,5 @@
 #include "scene_menu.h"
+#include "scene_manager.h" // <-- ¡Incluye el manager para cambiar de escena!
 #include <raylib.h>
 #include <stdio.h>
 
@@ -40,10 +41,10 @@ void SceneMenu_Update(void) {
     if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER) || IsKeyPressed(KEY_SPACE)) {
         switch (selectedOption) {
             case 0: /* Comenzar */
-                // Cambia a la escena del juego aquí
+                // Aquí cambiarías a la escena de juego (cuando esté implementada)
                 break;
             case 1: /* Ajustes */
-                // Cambia a la escena de ajustes aquí
+                SceneManager_Change(SCENE_SETTINGS); // <--- Cambio profesional a Ajustes
                 break;
             case 2: /* Salir */
                 CloseWindow();
