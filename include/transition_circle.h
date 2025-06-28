@@ -1,6 +1,8 @@
 #ifndef TRANSITION_CIRCLE_H
 #define TRANSITION_CIRCLE_H
 
+#include <stdbool.h>
+
 // Inicializa el efecto de transición circular
 void TransitionCircle_Init(void);
 
