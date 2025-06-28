@@ -26,7 +26,7 @@ jobs:
             make install &&
             cd /project &&
             mkdir -p build &&
-            gcc src/*.c -Iinclude -o build/my_mansion -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+            gcc \$(find src -name '*.c') -Iinclude -o build/my_mansion -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
           "
 
       - name: Upload artifact
