@@ -1,5 +1,6 @@
 #include <raylib.h>
 #include "scene_manager.h"
+#include <math.h>
 
 #define GAME_WIDTH 1280
 #define GAME_HEIGHT 720
