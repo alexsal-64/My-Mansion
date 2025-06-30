@@ -24,21 +24,34 @@ void TransitionCircle_Update(void) {
 }
 
 void TransitionCircle_Draw(void) {
-    // Fondo negro inicial
-    ClearBackground(BLACK);
-
-    // Centro de la pantalla lógica
-    int cx = GetScreenWidth() / 2;
-    int cy = GetScreenHeight() / 2;
-
-    // Radio máximo para cubrir toda la pantalla (diagonal)
-    float maxRadius = sqrtf((float)(GetScreenWidth()*GetScreenWidth() + GetScreenHeight()*GetScreenHeight())) / 2.0f;
+    int w = GetScreenWidth();
+    int h = GetScreenHeight();
+    int cx = w / 2;
+    int cy = h / 2;
+    float maxRadius = sqrtf((float)(w*w + h*h)) / 2.0f;
     float currentRadius = maxRadius * transitionProgress;
 
-    // Círculo "hueco" que crece y revela el fondo (efecto inverso)
-    BeginBlendMode(BLEND_SUBTRACT_COLORS);
-    DrawCircle(cx, cy, currentRadius, WHITE);
+    // Crea una textura temporal (máscara)
+    RenderTexture2D mask = LoadRenderTexture(w, h);
+
+    // 1. Dibuja fondo negro en la máscara
+    BeginTextureMode(mask);
+        ClearBackground(BLACK);
+        // Dibuja un círculo transparente (alpha = 0) para "abrir" el agujero
+        DrawCircle(cx, cy, currentRadius, BLANK);
+    EndTextureMode();
+
+    // 2. Dibuja la máscara sobre la pantalla, usando blending multiplicativo para dejar ver debajo el agujero
+    BeginBlendMode(BLEND_MULTIPLIED);
+        DrawTextureRec(
+            mask.texture,
+            (Rectangle){0, 0, (float)w, -(float)h},
+            (Vector2){0, 0},
+            WHITE
+        );
     EndBlendMode();
+
+    UnloadRenderTexture(mask);
 }
 
 bool TransitionCircle_IsDone(void) {
