@@ -12,6 +12,7 @@ static SceneID nextScene = SCENE_MENU;
 void SceneManager_Init(void) {
     currentScene = SCENE_TRANSITION;
     nextScene = SCENE_MENU;
+    SceneMenu_Init();          // <--- Asegura que la fuente del menú esté cargada
     TransitionCircle_Init();
 }
 
