@@ -27,32 +27,16 @@ void TransitionCircle_Draw(void) {
     int h = GetScreenHeight();
     int cx = w / 2;
     int cy = h / 2;
+
+    // Radio máximo, que cubre toda la pantalla
     float maxRadius = sqrtf((float)(w*w + h*h)) / 2.0f;
-    float currentRadius = maxRadius * transitionProgress;
+    // El círculo empieza cubriendo todo y va desapareciendo
+    float currentRadius = maxRadius * (1.0f - transitionProgress);
 
-    // 1. Prepara una textura de máscara
-    RenderTexture2D mask = LoadRenderTexture(w, h);
-
-    BeginTextureMode(mask);
-        // Fondo negro, completamente opaco
-        ClearBackground((Color){0, 0, 0, 255});
-        // Círculo central transparente (alpha=0)
-        DrawCircle(cx, cy, currentRadius, (Color){0, 0, 0, 0});
-    EndTextureMode();
-
-    // 2. Dibuja la máscara usando blending alpha
-    BeginBlendMode(BLEND_ALPHA);
-        DrawTextureRec(
-            mask.texture,
-            (Rectangle){0, 0, (float)w, -(float)h}, // flip Y
-            (Vector2){0, 0},
-            WHITE
-        );
-    EndBlendMode();
-
-    UnloadRenderTexture(mask);
+    if (currentRadius > 0.0f) {
+        DrawCircle(cx, cy, currentRadius, BLACK);
+    }
 }
-
 bool TransitionCircle_IsDone(void) {
     return finished;
 }
