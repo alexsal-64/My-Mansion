@@ -2,8 +2,8 @@
 #include "scene_manager.h"
 #include <math.h>
 
-#define GAME_WIDTH 1280
-#define GAME_HEIGHT 720
+#define GAME_WIDTH 960
+#define GAME_HEIGHT 540
 
 int main(void) {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
@@ -15,8 +15,8 @@ int main(void) {
     SceneManager_Init();
 
     while (!WindowShouldClose()) {
-        // --- Procesa ESC para pantalla completa SIEMPRE ---
-        if (IsKeyPressed(KEY_ESCAPE)) {
+        // --- Procesa F para pantalla completa SIEMPRE ---
+        if (IsKeyPressed(KEY_F)) {
             ToggleFullscreen();
         }
 
