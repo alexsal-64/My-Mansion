@@ -54,8 +54,8 @@ void SceneMenu_Update(void) {
 }
 
 void SceneMenu_Draw(void) {
-    int screenWidth = 1280; // Debe coincidir con el espacio lógico
-    int screenHeight = 720;
+    int screenWidth = 960; // Debe coincidir con el espacio lógico
+    int screenHeight = 540;
 
     // Fondo gris
     ClearBackground(MENU_BG_COLOR);
