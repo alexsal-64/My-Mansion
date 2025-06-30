@@ -2,7 +2,7 @@
 #include <raylib.h>
 #include <math.h>
 
-#define TRANSITION_DURATION 1.6f
+#define TRANSITION_DURATION 2.8f
 
 static float transitionProgress = 0.0f;
 static bool finished = false;
