@@ -14,11 +14,6 @@ void SceneSettings_Init(void) {
 }
 
 void SceneSettings_Update(void) {
-    // Alternar pantalla completa F
-    if (IsKeyPressed(KEY_F)) {
-        ToggleFullscreen();
-    }
-
     // Volver al menú
     if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressed(KEY_M)) {
         SceneManager_Change(SCENE_MENU);
