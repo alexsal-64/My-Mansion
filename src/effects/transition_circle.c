@@ -30,14 +30,27 @@ void TransitionCircle_Draw(void) {
     float maxRadius = sqrtf((float)(w*w + h*h)) / 2.0f;
     float currentRadius = maxRadius * transitionProgress;
 
-    // Dibuja un círculo negro opaco que va reduciendo su radio
-    // Así, el círculo negro va "destapando" el menú
-    DrawRectangle(0, 0, w, h, BLACK);
-    DrawCircle(cx, cy, currentRadius, Fade(BLACK, 0.0f)); // círculo transparente (no cubre)
-    DrawCircleLines(cx, cy, currentRadius, Fade(DARKGRAY, 0.3f)); // opcional: borde suave
+    // 1. Prepara una textura de máscara
+    RenderTexture2D mask = LoadRenderTexture(w, h);
 
-    // Para el efecto: "recorta" el círculo simplemente no tapando esa zona
-    // Si quieres un borde, puedes dibujar un círculo semitransparente alrededor
+    BeginTextureMode(mask);
+        // Fondo negro, completamente opaco
+        ClearBackground((Color){0, 0, 0, 255});
+        // Círculo central transparente (alpha=0)
+        DrawCircle(cx, cy, currentRadius, (Color){0, 0, 0, 0});
+    EndTextureMode();
+
+    // 2. Dibuja la máscara usando blending alpha
+    BeginBlendMode(BLEND_ALPHA);
+        DrawTextureRec(
+            mask.texture,
+            (Rectangle){0, 0, (float)w, -(float)h}, // flip Y
+            (Vector2){0, 0},
+            WHITE
+        );
+    EndBlendMode();
+
+    UnloadRenderTexture(mask);
 }
 
 bool TransitionCircle_IsDone(void) {
