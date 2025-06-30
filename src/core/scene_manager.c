@@ -1,7 +1,7 @@
-#include "scene_manager.h"
-#include "transition_circle.h"
-#include "scene_menu.h"
-#include "scene_settings.h"
+#include "core/scene_manager.h"
+#include "effects/transition_circle.h"
+#include "scenes/scene_menu.h"
+#include "scenes/scene_settings.h"
 #include <raylib.h>
 
 static SceneID currentScene;
