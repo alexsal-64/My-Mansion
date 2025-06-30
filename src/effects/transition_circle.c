@@ -2,7 +2,6 @@
 #include <raylib.h>
 #include <math.h>
 
-// Tiempo total de la transición (en segundos)
 #define TRANSITION_DURATION 1.6f
 
 static float transitionProgress = 0.0f;
@@ -31,27 +30,14 @@ void TransitionCircle_Draw(void) {
     float maxRadius = sqrtf((float)(w*w + h*h)) / 2.0f;
     float currentRadius = maxRadius * transitionProgress;
 
-    // Crea una textura temporal (máscara)
-    RenderTexture2D mask = LoadRenderTexture(w, h);
+    // Dibuja un círculo negro opaco que va reduciendo su radio
+    // Así, el círculo negro va "destapando" el menú
+    DrawRectangle(0, 0, w, h, BLACK);
+    DrawCircle(cx, cy, currentRadius, Fade(BLACK, 0.0f)); // círculo transparente (no cubre)
+    DrawCircleLines(cx, cy, currentRadius, Fade(DARKGRAY, 0.3f)); // opcional: borde suave
 
-    // 1. Dibuja fondo negro en la máscara
-    BeginTextureMode(mask);
-        ClearBackground(BLACK);
-        // Dibuja un círculo transparente (alpha = 0) para "abrir" el agujero
-        DrawCircle(cx, cy, currentRadius, BLANK);
-    EndTextureMode();
-
-    // 2. Dibuja la máscara sobre la pantalla, usando blending multiplicativo para dejar ver debajo el agujero
-    BeginBlendMode(BLEND_MULTIPLIED);
-        DrawTextureRec(
-            mask.texture,
-            (Rectangle){0, 0, (float)w, -(float)h},
-            (Vector2){0, 0},
-            WHITE
-        );
-    EndBlendMode();
-
-    UnloadRenderTexture(mask);
+    // Para el efecto: "recorta" el círculo simplemente no tapando esa zona
+    // Si quieres un borde, puedes dibujar un círculo semitransparente alrededor
 }
 
 bool TransitionCircle_IsDone(void) {
