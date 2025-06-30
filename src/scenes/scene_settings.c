@@ -6,7 +6,7 @@
 #define SETTINGS_OPTION_COUNT 2
 
 static const char *settingsOptions[SETTINGS_OPTION_COUNT] = {
-    "Pantalla Completa",
+    "Pantalla Completa ON/OFF",
     "Volver al menu"
 };
 
@@ -76,6 +76,6 @@ void SceneSettings_Draw(void) {
     }
 
     // Indicaciones
-    const char *hint = "Navega con ↑/↓, selecciona con Enter o Espacio";
+    const char *hint = "Navega con Arriba/Abajo, selecciona con Enter o Espacio";
     DrawTextEx(settingsFont, hint, (Vector2){screenWidth/2-220, 480}, 22, 2, GRAY);
 }
