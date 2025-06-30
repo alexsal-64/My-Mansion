@@ -4,7 +4,13 @@ project(MyMansion C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-include_directories(include)
+include_directories(
+    include
+    include/core
+    include/effects
+    include/scenes
+    include/ui
+)
 file(GLOB_RECURSE GAME_SOURCES src/*.c)
 
 if(EMSCRIPTEN)
