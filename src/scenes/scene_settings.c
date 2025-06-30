@@ -32,6 +32,10 @@ void SceneSettings_Init(void) {
 
 void SceneSettings_Update(void) {
     Menu_Update(&settingsMenu, 960);
+    // Permitir volver al menú también con Backspace
+    if (IsKeyPressed(KEY_BACKSPACE)) {
+        SceneManager_Change(SCENE_MENU);
+    }
 }
 
 void SceneSettings_Draw(void) {
@@ -47,7 +51,10 @@ void SceneSettings_Draw(void) {
 
     Menu_Draw(&settingsMenu, screenWidth);
 
-    // Indicaciones para el usuario
+ // Indicaciones para el usuario, centrado horizontalmente
     const char *hint = "Navega con Arriba/Abajo, selecciona con Enter/Espacio o Mouse";
-    DrawTextEx(settingsFont, hint, (Vector2){screenWidth/2-220, 480}, 22, 2, GRAY);
+    float hintFontSize = 22;
+    float hintSpacing = 2;
+    Vector2 hintDim = MeasureTextEx(settingsFont, hint, hintFontSize, hintSpacing);
+    DrawTextEx(settingsFont, hint, (Vector2){(screenWidth-hintDim.x)/2, 480}, hintFontSize, hintSpacing, GRAY);
 }
