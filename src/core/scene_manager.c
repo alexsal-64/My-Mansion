@@ -2,11 +2,16 @@
 #include "transition_circle.h"
 #include "scene_menu.h"
 #include "scene_settings.h"
+#include <raylib.h>
 
 static SceneID currentScene;
 
+// Nuevo: Para saber a qué escena vamos a transicionar
+static SceneID nextScene = SCENE_MENU;
+
 void SceneManager_Init(void) {
     currentScene = SCENE_TRANSITION;
+    nextScene = SCENE_MENU;
     TransitionCircle_Init();
 }
 
@@ -15,7 +20,7 @@ void SceneManager_Update(void) {
         case SCENE_TRANSITION:
             TransitionCircle_Update();
             if (TransitionCircle_IsDone()) {
-                SceneManager_Change(SCENE_MENU);
+                SceneManager_Change(nextScene);
             }
             break;
         case SCENE_MENU:
@@ -30,6 +35,13 @@ void SceneManager_Update(void) {
 void SceneManager_Draw(void) {
     switch (currentScene) {
         case SCENE_TRANSITION:
+            // Dibuja la escena a la que se está transicionando (menú, por ahora)
+            if (nextScene == SCENE_MENU) {
+                SceneMenu_Draw();
+            } else if (nextScene == SCENE_SETTINGS) {
+                SceneSettings_Draw();
+            }
+            // Encima dibuja la transición circular
             TransitionCircle_Draw();
             break;
         case SCENE_MENU:
