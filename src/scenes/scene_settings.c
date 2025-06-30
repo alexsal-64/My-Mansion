@@ -1,5 +1,5 @@
-#include "scene_settings.h"
-#include "scene_manager.h"
+#include "scenes/scene_settings.h"
+#include "core/scene_manager.h"
 #include "ui/menu.h"
 #include <raylib.h>
 #include <stdio.h>
