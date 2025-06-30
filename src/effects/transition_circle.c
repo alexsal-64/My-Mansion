@@ -1,4 +1,4 @@
-#include "transition_circle.h"
+#include "effects/transition_circle.h"
 #include <raylib.h>
 #include <math.h>
 
