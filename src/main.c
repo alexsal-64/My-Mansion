@@ -1,5 +1,6 @@
 #include <raylib.h>
 #include "core/scene_manager.h"
+#include "game.h"
 #include <math.h>
 
 #define GAME_WIDTH 960
@@ -15,7 +16,6 @@ int main(void) {
     SceneManager_Init();
 
     while (!WindowShouldClose()) {
-        // --- Procesa F para pantalla completa SIEMPRE ---
         if (IsKeyPressed(KEY_F)) {
             ToggleFullscreen();
         }
@@ -24,23 +24,34 @@ int main(void) {
 
         // --- Dibujar todo al RenderTexture interno ---
         BeginTextureMode(target);
-            ClearBackground(RAYWHITE); // Fondo de la escena
+            ClearBackground(RAYWHITE);
             SceneManager_Draw();
         EndTextureMode();
 
         int windowWidth = GetScreenWidth();
         int windowHeight = GetScreenHeight();
-        float scale = fminf(
-            (float)windowWidth / GAME_WIDTH,
-            (float)windowHeight / GAME_HEIGHT
-        );
-        int scaledWidth = (int)(GAME_WIDTH * scale);
-        int scaledHeight = (int)(GAME_HEIGHT * scale);
-        int offsetX = (windowWidth - scaledWidth) / 2;
-        int offsetY = (windowHeight - scaledHeight) / 2;
+
+        int scaledWidth, scaledHeight, offsetX, offsetY;
+        if (g_pixelPerfectScaling) {
+            int scaleX = windowWidth / GAME_WIDTH;
+            int scaleY = windowHeight / GAME_HEIGHT;
+            int scale = (scaleX < scaleY) ? scaleX : scaleY;
+            if (scale < 1) scale = 1;
+            scaledWidth = GAME_WIDTH * scale;
+            scaledHeight = GAME_HEIGHT * scale;
+        } else {
+            float scale = fminf(
+                (float)windowWidth / GAME_WIDTH,
+                (float)windowHeight / GAME_HEIGHT
+            );
+            scaledWidth = (int)(GAME_WIDTH * scale);
+            scaledHeight = (int)(GAME_HEIGHT * scale);
+        }
+        offsetX = (windowWidth - scaledWidth) / 2;
+        offsetY = (windowHeight - scaledHeight) / 2;
 
         BeginDrawing();
-            ClearBackground(BLACK); // Bordes negros (letterbox)
+            ClearBackground(BLACK);
             DrawTexturePro(
                 target.texture,
                 (Rectangle){ 0, 0, GAME_WIDTH, -GAME_HEIGHT },
