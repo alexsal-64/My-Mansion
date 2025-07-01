@@ -1,20 +1,31 @@
 #include "scenes/scene_settings.h"
 #include "core/scene_manager.h"
 #include "ui/menu.h"
+#include "game.h"
 #include <raylib.h>
 #include <stdio.h>
 
-// Fuentes para cada tamaño a usar
 static Font settingsFontMenu;    // 38px para botones
 static Font settingsFontTitle;   // 56px para título
 static Font settingsFontHint;    // 22px para hint
 static bool fontLoaded = false;
 
+// --- Botón de escalado dinámico ---
+static char scalingLabel[64];
+
 // Callbacks para los botones
+static void onToggleScaling(void) {
+    g_pixelPerfectScaling = !g_pixelPerfectScaling;
+    snprintf(scalingLabel, sizeof(scalingLabel),
+        "Modo de Escalado: %s", g_pixelPerfectScaling ? "Pixel Perfect" : "Suave"
+    );
+}
 static void onFullscreen(void) { ToggleFullscreen(); }
 static void onBack(void) { SceneManager_Change(SCENE_MENU); }
 
+// El label del modo de escalado se actualiza dinámicamente
 static MenuButton settingsButtons[] = {
+    { scalingLabel, onToggleScaling },
     { "Pantalla Completa ON/OFF", onFullscreen },
     { "Volver al menu", onBack }
 };
@@ -31,13 +42,14 @@ void SceneSettings_Init(void) {
         settingsFontHint  = LoadFontEx("assets/fonts/LuckiestGuy-Regular.ttf", 22, 0, 0);
         fontLoaded = true;
     }
-    // El menú inicia debajo del título "Ajustes"
-    Menu_Init(&settingsMenu, settingsButtons, 2, settingsFontMenu, 38, OPTION_SPACE, LOGO_SPACE+56+60);
+    snprintf(scalingLabel, sizeof(scalingLabel),
+        "Modo de Escalado: %s", g_pixelPerfectScaling ? "Pixel Perfect" : "Suave"
+    );
+    Menu_Init(&settingsMenu, settingsButtons, 3, settingsFontMenu, 38, OPTION_SPACE, LOGO_SPACE+56+60);
 }
 
 void SceneSettings_Update(void) {
     Menu_Update(&settingsMenu, 960);
-    // Permitir volver al menú también con Backspace
     if (IsKeyPressed(KEY_BACKSPACE)) {
         SceneManager_Change(SCENE_MENU);
     }
@@ -48,7 +60,6 @@ void SceneSettings_Draw(void) {
     int screenHeight = 540;
     ClearBackground(MENU_BG_COLOR);
 
-    // Título centrado, usando fuente a 56px
     const char *title = "Ajustes";
     float titleSize = 56;
     float titleSpacing = 5;
@@ -57,7 +68,15 @@ void SceneSettings_Draw(void) {
 
     Menu_Draw(&settingsMenu, screenWidth);
 
-    // Hint centrado, usando fuente a 22px
+    // Muestra el modo de escalado actual SOLO en este menú
+    const char *scalingDesc = g_pixelPerfectScaling ?
+        "Pixel Perfect: Imagen nítida, puede dejar barras negras." :
+        "Escalado Suave: Llena la pantalla, puede verse borroso.";
+    float descFontSize = 18;
+    float descSpacing = 2;
+    Vector2 descDim = MeasureTextEx(settingsFontHint, scalingDesc, descFontSize, descSpacing);
+    DrawTextEx(settingsFontHint, scalingDesc, (Vector2){(screenWidth-descDim.x)/2, 430}, descFontSize, descSpacing, GRAY);
+
     const char *hint = "Navega con Arriba/Abajo, selecciona con Enter/Espacio o Mouse";
     float hintFontSize = 22;
     float hintSpacing = 2;
@@ -65,7 +84,6 @@ void SceneSettings_Draw(void) {
     DrawTextEx(settingsFontHint, hint, (Vector2){(screenWidth-hintDim.x)/2, 480}, hintFontSize, hintSpacing, GRAY);
 }
 
-// (Opcional, pero profesional) Si tienes función de "unload" de la escena:
 void SceneSettings_Unload(void) {
     if (fontLoaded) {
         UnloadFont(settingsFontMenu);
