@@ -25,7 +25,7 @@ if(EMSCRIPTEN)
         set(RAYLIB_LIBRARIES raylib)
     endif()
 
-     # Hace que el binario de salida sea .html (necesario para lanzar el juego en navegador)
+    # Hace que el binario de salida sea .html (necesario para lanzar el juego en navegador)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
     add_executable(mansion ${GAME_SOURCES})
@@ -54,4 +54,12 @@ else()
     find_package(raylib 4.5 REQUIRED)
     add_executable(mansion ${GAME_SOURCES})
     target_link_libraries(mansion raylib m pthread dl rt X11)
+
+    # Copia la carpeta assets al directorio de binarios después de la build
+    add_custom_command(TARGET mansion POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets
+        $<TARGET_FILE_DIR:mansion>/assets
+        COMMENT "Copiando assets al directorio de binarios..."
+    )
 endif()
