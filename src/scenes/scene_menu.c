@@ -51,7 +51,7 @@ void SceneMenu_Draw(void) {
     ClearBackground(MENU_BG_COLOR);
 
     // Logo separado (usa fuente 72px)
-    const char *logoText = "MY MANSION";
+    const char *logoText = "The Mansion Project";
     float logoFontSize = 72;
     float logoSpacing = 4;
     Vector2 logoSize = MeasureTextEx(menuFontLogo, logoText, logoFontSize, logoSpacing);
