@@ -14,6 +14,7 @@
     Función principal:
     - Inicializa la ventana y el RenderTexture interno.
     - Controla el bucle principal del juego, incluyendo escalado y centrado profesional para ventana y pantalla completa.
+    - Se asegura que el modo pantalla completa no dependa de la configuración o estiramiento previo de la ventana.
 */
 int main(void) {
     // Habilitar ventana redimensionable y VSync
@@ -28,10 +29,20 @@ int main(void) {
     SetTargetFPS(60);
     SceneManager_Init();
 
+    // Variable para detectar cambios de modo (ventana <-> pantalla completa)
+    bool wasFullscreen = IsWindowFullscreen();
+
     while (!WindowShouldClose()) {
         // Toggle pantalla completa con F
         if (IsKeyPressed(KEY_F)) {
             ToggleFullscreen();
+        }
+
+        // Detecta si el modo ha cambiado (ventana <-> pantalla completa)
+        bool nowFullscreen = IsWindowFullscreen();
+        if (nowFullscreen != wasFullscreen) {
+            // Aquí podrías agregar lógica extra si necesitas actualizar recursos al cambiar de modo
+            wasFullscreen = nowFullscreen;
         }
 
         SceneManager_Update();
@@ -47,6 +58,7 @@ int main(void) {
             Diferenciar entre modo ventana y pantalla completa:
             - En ventana, usar tamaño actual de la ventana.
             - En pantalla completa, usar resolución real del monitor actual.
+            - El cálculo se hace SIEMPRE en cada frame, garantizando que la imagen en pantalla completa no dependa del tamaño previo de la ventana.
         */
         int windowWidth, windowHeight;
         if (IsWindowFullscreen()) {
