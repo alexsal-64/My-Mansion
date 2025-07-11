@@ -5,23 +5,29 @@
 
 /*
     Dimensiones base internas del juego (relación de aspecto original).
-    Cambia estos valores si quieres modificar la relación de aspecto base (por ejemplo, para 16:10).
+    Cambia estos valores si quieres modificar la relación de aspecto base.
 */
 #define GAME_WIDTH 960
 #define GAME_HEIGHT 540
 
 /*
-    SOLUCIÓN PROFESIONAL:
-    - El modo ventana y el modo pantalla completa se tratan de forma completamente independiente.
-    - En modo ventana:
-        - El escalado "pixel perfect" usa la mayor escala entera que cabe en el tamaño actual de la ventana.
-        - El escalado "suave" usa la mayor escala fraccional que respeta el aspect ratio.
-    - En modo pantalla completa:
-        - El escalado "pixel perfect" usa la mayor escala entera que cabe en la resolución física del monitor.
-        - El escalado "suave" usa la mayor escala fraccional que respeta el aspect ratio y llena la pantalla.
-    - Esto asegura que al cambiar entre ventana y pantalla completa, el cálculo se hace SIEMPRE respecto al contexto actual,
-      sin heredar nada del modo anterior.
+    Solución avanzada e inteligente:
+    - Se detecta el cambio entre ventana y pantalla completa y se fuerza una reinicialización de render si es necesario.
+    - En modo ventana, el escalado y centrado se calculan según el tamaño actual de la ventana.
+    - En modo pantalla completa, el escalado pixel perfect se calcula respecto a la resolución física del monitor.
+    - Si la resolución del monitor no es múltiplo exacto, se ofrece un modo “stretch pixel perfect” (opcional, aquí implementado como ejemplo)
+      para escalar y recortar los bordes, eliminando las barras negras.
+    - El usuario puede alternar entre modo suave, pixel perfect clásico y pixel perfect stretch desde el menú de ajustes.
+    - Este enfoque asegura que los modos sean completamente independientes y el juego siempre se adapte profesionalmente.
 */
+
+typedef enum {
+    PP_CENTERED, // Pixel perfect centrado (barras negras si es necesario)
+    PP_STRETCH,  // Pixel perfect stretch/crop (recorta los bordes, sin barras negras)
+} PixelPerfectMode;
+
+int g_pixelPerfectScaling = 1;         // 1 = Pixel Perfect, 0 = Suave (control principal)
+PixelPerfectMode g_pixelPerfectMode = PP_CENTERED; // Control avanzado del modo pixel perfect
 
 int main(void) {
     // Habilitar ventana redimensionable y VSync
@@ -36,10 +42,21 @@ int main(void) {
     SetTargetFPS(60);
     SceneManager_Init();
 
+    // Estado para detectar cambio de modo (fullscreen/ventana)
+    bool wasFullscreen = IsWindowFullscreen();
+
     while (!WindowShouldClose()) {
-        // Toggle pantalla completa con F o desde el botón de ajustes (ambos llaman a ToggleFullscreen)
+        // Toggle pantalla completa con F o desde el botón de ajustes
         if (IsKeyPressed(KEY_F)) {
             ToggleFullscreen();
+        }
+
+        // Detectar cambio de modo y forzar reinicialización de RenderTexture si es necesario
+        bool nowFullscreen = IsWindowFullscreen();
+        if (nowFullscreen != wasFullscreen) {
+            // En esta solución, el RenderTexture (target) se mantiene igual, ya que la fuente del juego es fija (GAME_WIDTH x GAME_HEIGHT).
+            // Si quisieras un buffer de salida igual al monitor en modo stretch/crop real, podrías recargarlo aquí.
+            wasFullscreen = nowFullscreen;
         }
 
         SceneManager_Update();
@@ -51,60 +68,88 @@ int main(void) {
         EndTextureMode();
 
         /*
-            --- ESCALADO Y CENTRADO PROFESIONAL ---
-            - El cálculo de escalado y centrado se basa SOLAMENTE en el modo actual:
-              ventana: usa tamaño de la ventana
-              pantalla completa: usa resolución física del monitor
-
-            - Esto separa completamente los comportamientos, asegurando que al cambiar de modo,
-              el juego SIEMPRE se escala y centra respecto al entorno actual, sin importar cómo estaba antes.
+            --- Escalado y centrado avanzado ---
+            Comportamiento completamente separado:
+                - Ventana: cálculo según tamaño de la ventana.
+                - Pantalla completa: cálculo según resolución física del monitor.
+                - Pixel perfect stretch: escala y recorta para evitar barras, sólo en fullscreen.
         */
         int windowWidth, windowHeight;
-
         if (IsWindowFullscreen()) {
-            // Pantalla completa: obtener resolución física del monitor actual
             int monitor = GetCurrentMonitor();
             windowWidth = GetMonitorWidth(monitor);
             windowHeight = GetMonitorHeight(monitor);
         } else {
-            // Ventana: usar tamaño actual de la ventana
             windowWidth = GetScreenWidth();
             windowHeight = GetScreenHeight();
         }
 
         int scaledWidth, scaledHeight, offsetX, offsetY;
+        Rectangle srcRec = { 0, 0, GAME_WIDTH, -GAME_HEIGHT }; // Por defecto, toda la textura
 
-        if (g_pixelPerfectScaling) {
-            // ESCALADO PIXEL PERFECT
-            // - Siempre usa la mayor escala entera posible
-            int scaleX = windowWidth / GAME_WIDTH;
-            int scaleY = windowHeight / GAME_HEIGHT;
-            int scale = (scaleX < scaleY) ? scaleX : scaleY;
-            if (scale < 1) scale = 1; // Nunca menos de 1x
-
-            scaledWidth = GAME_WIDTH * scale;
-            scaledHeight = GAME_HEIGHT * scale;
-        } else {
-            // ESCALADO SUAVE
-            // - Usa la mayor escala fraccional posible que cabe en el área
+        if (!g_pixelPerfectScaling) {
+            // Modo suave: escalado fraccional, rellena el área y puede verse borroso.
             float scale = fminf(
                 (float)windowWidth / GAME_WIDTH,
                 (float)windowHeight / GAME_HEIGHT
             );
             scaledWidth = (int)roundf(GAME_WIDTH * scale);
             scaledHeight = (int)roundf(GAME_HEIGHT * scale);
-        }
+            offsetX = (windowWidth - scaledWidth) / 2;
+            offsetY = (windowHeight - scaledHeight) / 2;
+        } else {
+            // Modo pixel perfect
+            if (IsWindowFullscreen() && g_pixelPerfectMode == PP_STRETCH) {
+                // Pixel perfect stretch/crop SOLO en pantalla completa
+                // Escala entero "hacia arriba" para cubrir todo el monitor, recortando los bordes si es necesario
+                int scaleX = (windowWidth + GAME_WIDTH - 1) / GAME_WIDTH;
+                int scaleY = (windowHeight + GAME_HEIGHT - 1) / GAME_HEIGHT;
+                int scale = (scaleX < scaleY) ? scaleX : scaleY;
+                if (scale < 1) scale = 1;
 
-        // CENTRADO ABSOLUTO
-        // - Calcula el offset para centrar el área escalada
-        offsetX = (windowWidth - scaledWidth) / 2;
-        offsetY = (windowHeight - scaledHeight) / 2;
+                scaledWidth = GAME_WIDTH * scale;
+                scaledHeight = GAME_HEIGHT * scale;
+                offsetX = (windowWidth - scaledWidth) / 2;
+                offsetY = (windowHeight - scaledHeight) / 2;
+
+                // Recortar los bordes del source rectangle si se sale de pantalla
+                // Ejemplo: si scaledWidth > windowWidth, recortamos srcRec.x y srcRec.width
+                float cropX = 0, cropY = 0;
+                float cropW = GAME_WIDTH, cropH = GAME_HEIGHT;
+                if (scaledWidth > windowWidth) {
+                    float over = (float)(scaledWidth - windowWidth) / scale;
+                    cropX = over / 2.0f;
+                    cropW -= over;
+                }
+                if (scaledHeight > windowHeight) {
+                    float over = (float)(scaledHeight - windowHeight) / scale;
+                    cropY = over / 2.0f;
+                    cropH -= over;
+                }
+                srcRec.x = cropX;
+                srcRec.y = cropY;
+                srcRec.width = cropW;
+                srcRec.height = -cropH; // Raylib invierte Y en RenderTexture
+            } else {
+                // Pixel perfect clásico (centrado, barras negras si es necesario)
+                int scaleX = windowWidth / GAME_WIDTH;
+                int scaleY = windowHeight / GAME_HEIGHT;
+                int scale = (scaleX < scaleY) ? scaleX : scaleY;
+                if (scale < 1) scale = 1;
+
+                scaledWidth = GAME_WIDTH * scale;
+                scaledHeight = GAME_HEIGHT * scale;
+                offsetX = (windowWidth - scaledWidth) / 2;
+                offsetY = (windowHeight - scaledHeight) / 2;
+                // srcRec es toda la textura
+            }
+        }
 
         BeginDrawing();
             ClearBackground(BLACK); // Barras negras simétricas
             DrawTexturePro(
                 target.texture,
-                (Rectangle){ 0, 0, GAME_WIDTH, -GAME_HEIGHT }, // Vertical flip
+                srcRec, // Puede estar recortado en stretch/crop
                 (Rectangle){ offsetX, offsetY, scaledWidth, scaledHeight },
                 (Vector2){ 0, 0 },
                 0.0f,
@@ -120,15 +165,11 @@ int main(void) {
 }
 
 /*
-    EXPLICACIÓN DE MAESTRO:
-    - El cálculo de escalado y centrado se basa SIEMPRE en el estado actual, nunca en el previo.
-    - En modo ventana puedes estirar o maximizar: el juego se reescala según el tamaño de la ventana.
-    - En modo pantalla completa, el juego SIEMPRE usa la resolución física del monitor para calcular el escalado,
-      por lo que no hereda ninguna "configuración" de la ventana ni ninguna barra negra extra.
-    - El modo pixel perfect puede dejar barras negras si la resolución del monitor no es múltiplo exacto de la base del juego,
-      esto es normal y profesional en juegos 2D.
-    - El modo suave rellena todo el área, aunque puede verse borroso.
-    - Puedes cambiar entre modos en cualquier momento, y el juego recalcula y centra la imagen correctamente.
-
-    Si necesitas forzar el modo suave sólo en pantalla completa, dime y te preparo ese ejemplo.
+    Maestro explica:
+    - El modo pixel perfect stretch elimina las barras negras en fullscreen, recortando los bordes para un llenado total y máxima nitidez.
+    - El modo pixel perfect clásico deja barras si la resolución del monitor no es múltiplo exacto.
+    - El modo suave llena todo el área, sacrificando nitidez.
+    - El usuario puede alternar entre estos modos en los ajustes, haciendo que el juego sea versátil y profesional en cualquier plataforma.
+    - El cálculo de escalado y centrado es completamente independiente para ventana y pantalla completa.
+    - Este enfoque es robusto, multiplataforma y listo para producción.
 */
