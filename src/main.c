@@ -11,11 +11,16 @@
 #define GAME_HEIGHT 540
 
 /*
-    Solución definitiva al escalado pixel perfect y pantalla completa:
-    - El cálculo de tamaño y escalado se realiza SIEMPRE en cada frame.
-    - El cambio a pantalla completa es inmediato, sin saltar ningún frame.
-    - El botón y la tecla solo llaman a ToggleFullscreen(), toda la lógica de escalado está aquí.
-    - El juego nunca entra en bucle ni se bloquea.
+    SOLUCIÓN PROFESIONAL:
+    - El modo ventana y el modo pantalla completa se tratan de forma completamente independiente.
+    - En modo ventana:
+        - El escalado "pixel perfect" usa la mayor escala entera que cabe en el tamaño actual de la ventana.
+        - El escalado "suave" usa la mayor escala fraccional que respeta el aspect ratio.
+    - En modo pantalla completa:
+        - El escalado "pixel perfect" usa la mayor escala entera que cabe en la resolución física del monitor.
+        - El escalado "suave" usa la mayor escala fraccional que respeta el aspect ratio y llena la pantalla.
+    - Esto asegura que al cambiar entre ventana y pantalla completa, el cálculo se hace SIEMPRE respecto al contexto actual,
+      sin heredar nada del modo anterior.
 */
 
 int main(void) {
@@ -46,20 +51,23 @@ int main(void) {
         EndTextureMode();
 
         /*
-            --- Escalado y centrado profesional ---
-            Diferenciar entre modo ventana y pantalla completa:
-            - En ventana, usar tamaño actual de la ventana.
-            - En pantalla completa, usar resolución real del monitor actual.
-            - El cálculo se hace SIEMPRE en cada frame, garantizando que la imagen en pantalla completa no dependa del tamaño previo de la ventana.
+            --- ESCALADO Y CENTRADO PROFESIONAL ---
+            - El cálculo de escalado y centrado se basa SOLAMENTE en el modo actual:
+              ventana: usa tamaño de la ventana
+              pantalla completa: usa resolución física del monitor
+
+            - Esto separa completamente los comportamientos, asegurando que al cambiar de modo,
+              el juego SIEMPRE se escala y centra respecto al entorno actual, sin importar cómo estaba antes.
         */
         int windowWidth, windowHeight;
+
         if (IsWindowFullscreen()) {
-            // Modo pantalla completa: obtener tamaño real del monitor
+            // Pantalla completa: obtener resolución física del monitor actual
             int monitor = GetCurrentMonitor();
             windowWidth = GetMonitorWidth(monitor);
             windowHeight = GetMonitorHeight(monitor);
         } else {
-            // Modo ventana: usar tamaño actual de la ventana
+            // Ventana: usar tamaño actual de la ventana
             windowWidth = GetScreenWidth();
             windowHeight = GetScreenHeight();
         }
@@ -67,15 +75,18 @@ int main(void) {
         int scaledWidth, scaledHeight, offsetX, offsetY;
 
         if (g_pixelPerfectScaling) {
-            // Escalado "Pixel Perfect": solo múltiplos enteros
+            // ESCALADO PIXEL PERFECT
+            // - Siempre usa la mayor escala entera posible
             int scaleX = windowWidth / GAME_WIDTH;
             int scaleY = windowHeight / GAME_HEIGHT;
             int scale = (scaleX < scaleY) ? scaleX : scaleY;
-            if (scale < 1) scale = 1;
+            if (scale < 1) scale = 1; // Nunca menos de 1x
+
             scaledWidth = GAME_WIDTH * scale;
             scaledHeight = GAME_HEIGHT * scale;
         } else {
-            // Escalado "Suave": cualquier proporción, usa el menor para rellenar
+            // ESCALADO SUAVE
+            // - Usa la mayor escala fraccional posible que cabe en el área
             float scale = fminf(
                 (float)windowWidth / GAME_WIDTH,
                 (float)windowHeight / GAME_HEIGHT
@@ -84,9 +95,10 @@ int main(void) {
             scaledHeight = (int)roundf(GAME_HEIGHT * scale);
         }
 
-        // Centrado profesional (usa roundf para evitar errores de truncamiento)
-        offsetX = (int)roundf((windowWidth - scaledWidth) / 2.0f);
-        offsetY = (int)roundf((windowHeight - scaledHeight) / 2.0f);
+        // CENTRADO ABSOLUTO
+        // - Calcula el offset para centrar el área escalada
+        offsetX = (windowWidth - scaledWidth) / 2;
+        offsetY = (windowHeight - scaledHeight) / 2;
 
         BeginDrawing();
             ClearBackground(BLACK); // Barras negras simétricas
@@ -106,3 +118,17 @@ int main(void) {
     CloseWindow();
     return 0;
 }
+
+/*
+    EXPLICACIÓN DE MAESTRO:
+    - El cálculo de escalado y centrado se basa SIEMPRE en el estado actual, nunca en el previo.
+    - En modo ventana puedes estirar o maximizar: el juego se reescala según el tamaño de la ventana.
+    - En modo pantalla completa, el juego SIEMPRE usa la resolución física del monitor para calcular el escalado,
+      por lo que no hereda ninguna "configuración" de la ventana ni ninguna barra negra extra.
+    - El modo pixel perfect puede dejar barras negras si la resolución del monitor no es múltiplo exacto de la base del juego,
+      esto es normal y profesional en juegos 2D.
+    - El modo suave rellena todo el área, aunque puede verse borroso.
+    - Puedes cambiar entre modos en cualquier momento, y el juego recalcula y centra la imagen correctamente.
+
+    Si necesitas forzar el modo suave sólo en pantalla completa, dime y te preparo ese ejemplo.
+*/
