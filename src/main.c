@@ -8,7 +8,7 @@
 
 int main(void) {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
-    InitWindow(GAME_WIDTH, GAME_HEIGHT, "My Mansion - Menu Inicial");
+    InitWindow(GAME_WIDTH, GAME_HEIGHT, "The Mansion Project");
 
     RenderTexture2D target = LoadRenderTexture(GAME_WIDTH, GAME_HEIGHT);
 
