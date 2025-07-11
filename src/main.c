@@ -11,11 +11,13 @@
 #define GAME_HEIGHT 540
 
 /*
-    Función principal:
-    - Inicializa la ventana y el RenderTexture interno.
-    - Controla el bucle principal del juego, incluyendo escalado y centrado profesional para ventana y pantalla completa.
-    - Se asegura que el modo pantalla completa no dependa de la configuración o estiramiento previo de la ventana.
+    Solución profesional al problema de escalado pixel perfect tras cambiar a pantalla completa:
+    - Al cambiar a pantalla completa (ya sea por teclado o por botón), Raylib puede tardar un frame en reportar la resolución real del monitor.
+    - Por eso, tras cada cambio de modo, saltamos el frame actual para asegurar que en el siguiente frame los valores serán correctos.
+    - Esto garantiza que el escalado pixel perfect en pantalla completa SIEMPRE se recalcula usando la resolución real del monitor,
+      ignorando completamente el tamaño previo de la ventana. El botón en ajustes funciona bien, no necesita cambios.
 */
+
 int main(void) {
     // Habilitar ventana redimensionable y VSync
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
@@ -29,20 +31,31 @@ int main(void) {
     SetTargetFPS(60);
     SceneManager_Init();
 
-    // Variable para detectar cambios de modo (ventana <-> pantalla completa)
+    // Variables para detectar cambio de modo y saltar un frame tras pantalla completa
     bool wasFullscreen = IsWindowFullscreen();
+    bool skipFrameAfterFullscreen = false;
 
     while (!WindowShouldClose()) {
-        // Toggle pantalla completa con F
+        // Toggle pantalla completa con F o desde el botón de ajustes (ambos llaman a ToggleFullscreen)
         if (IsKeyPressed(KEY_F)) {
             ToggleFullscreen();
+            skipFrameAfterFullscreen = true; // Marca que debemos saltar el frame actual
         }
 
-        // Detecta si el modo ha cambiado (ventana <-> pantalla completa)
+        // Detecta si el modo ha cambiado (ventana <-> pantalla completa) por cualquier medio
         bool nowFullscreen = IsWindowFullscreen();
         if (nowFullscreen != wasFullscreen) {
-            // Aquí podrías agregar lógica extra si necesitas actualizar recursos al cambiar de modo
+            // Si el cambio se hizo por botón en ajustes, también saltamos el frame
+            skipFrameAfterFullscreen = true;
             wasFullscreen = nowFullscreen;
+        }
+
+        // Si acabamos de cambiar a pantalla completa/ventana, saltamos el frame
+        if (skipFrameAfterFullscreen) {
+            skipFrameAfterFullscreen = false;
+            // Actualiza la lógica pero NO dibuja nada este frame
+            SceneManager_Update();
+            continue;
         }
 
         SceneManager_Update();
