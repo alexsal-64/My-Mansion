@@ -11,23 +11,14 @@
 #define GAME_HEIGHT 540
 
 /*
-    Solución avanzada e inteligente:
-    - Se detecta el cambio entre ventana y pantalla completa y se fuerza una reinicialización de render si es necesario.
+    Solución profesional:
+    - El modo ventana y el modo pantalla completa se calculan por separado.
     - En modo ventana, el escalado y centrado se calculan según el tamaño actual de la ventana.
     - En modo pantalla completa, el escalado pixel perfect se calcula respecto a la resolución física del monitor.
-    - Si la resolución del monitor no es múltiplo exacto, se ofrece un modo “stretch pixel perfect” (opcional, aquí implementado como ejemplo)
-      para escalar y recortar los bordes, eliminando las barras negras.
-    - El usuario puede alternar entre modo suave, pixel perfect clásico y pixel perfect stretch desde el menú de ajustes.
-    - Este enfoque asegura que los modos sean completamente independientes y el juego siempre se adapte profesionalmente.
+    - El modo pixel perfect sólo usa múltiplos enteros y deja barras negras si la resolución no es múltiplo exacto.
+    - El modo suave rellena el área, sacrificando nitidez pero evitando barras negras.
+    - El usuario alterna entre pixel perfect y suave desde el menú de ajustes.
 */
-
-typedef enum {
-    PP_CENTERED, // Pixel perfect centrado (barras negras si es necesario)
-    PP_STRETCH,  // Pixel perfect stretch/crop (recorta los bordes, sin barras negras)
-} PixelPerfectMode;
-
-int g_pixelPerfectScaling = 1;         // 1 = Pixel Perfect, 0 = Suave (control principal)
-PixelPerfectMode g_pixelPerfectMode = PP_CENTERED; // Control avanzado del modo pixel perfect
 
 int main(void) {
     // Habilitar ventana redimensionable y VSync
@@ -51,12 +42,11 @@ int main(void) {
             ToggleFullscreen();
         }
 
-        // Detectar cambio de modo y forzar reinicialización de RenderTexture si es necesario
+        // Detectar cambio de modo (si quieres reaccionar a cambio de fullscreen)
         bool nowFullscreen = IsWindowFullscreen();
         if (nowFullscreen != wasFullscreen) {
-            // En esta solución, el RenderTexture (target) se mantiene igual, ya que la fuente del juego es fija (GAME_WIDTH x GAME_HEIGHT).
-            // Si quisieras un buffer de salida igual al monitor en modo stretch/crop real, podrías recargarlo aquí.
             wasFullscreen = nowFullscreen;
+            // No es necesario reinicializar el RenderTexture; solo recalculamos el escalado en cada frame.
         }
 
         SceneManager_Update();
@@ -68,11 +58,11 @@ int main(void) {
         EndTextureMode();
 
         /*
-            --- Escalado y centrado avanzado ---
-            Comportamiento completamente separado:
-                - Ventana: cálculo según tamaño de la ventana.
-                - Pantalla completa: cálculo según resolución física del monitor.
-                - Pixel perfect stretch: escala y recorta para evitar barras, sólo en fullscreen.
+            --- Escalado y centrado profesional ---
+            - Ventana: calcula según tamaño de la ventana.
+            - Pantalla completa: calcula según resolución física del monitor.
+            - Pixel perfect: sólo múltiplos enteros, barras negras si es necesario.
+            - Suave: escala fraccional, rellena todo el área.
         */
         int windowWidth, windowHeight;
         if (IsWindowFullscreen()) {
@@ -85,7 +75,7 @@ int main(void) {
         }
 
         int scaledWidth, scaledHeight, offsetX, offsetY;
-        Rectangle srcRec = { 0, 0, GAME_WIDTH, -GAME_HEIGHT }; // Por defecto, toda la textura
+        Rectangle srcRec = { 0, 0, GAME_WIDTH, -GAME_HEIGHT }; // Toda la textura
 
         if (!g_pixelPerfectScaling) {
             // Modo suave: escalado fraccional, rellena el área y puede verse borroso.
@@ -98,58 +88,24 @@ int main(void) {
             offsetX = (windowWidth - scaledWidth) / 2;
             offsetY = (windowHeight - scaledHeight) / 2;
         } else {
-            // Modo pixel perfect
-            if (IsWindowFullscreen() && g_pixelPerfectMode == PP_STRETCH) {
-                // Pixel perfect stretch/crop SOLO en pantalla completa
-                // Escala entero "hacia arriba" para cubrir todo el monitor, recortando los bordes si es necesario
-                int scaleX = (windowWidth + GAME_WIDTH - 1) / GAME_WIDTH;
-                int scaleY = (windowHeight + GAME_HEIGHT - 1) / GAME_HEIGHT;
-                int scale = (scaleX < scaleY) ? scaleX : scaleY;
-                if (scale < 1) scale = 1;
+            // Pixel perfect clásico (centrado, barras negras si es necesario)
+            int scaleX = windowWidth / GAME_WIDTH;
+            int scaleY = windowHeight / GAME_HEIGHT;
+            int scale = (scaleX < scaleY) ? scaleX : scaleY;
+            if (scale < 1) scale = 1;
 
-                scaledWidth = GAME_WIDTH * scale;
-                scaledHeight = GAME_HEIGHT * scale;
-                offsetX = (windowWidth - scaledWidth) / 2;
-                offsetY = (windowHeight - scaledHeight) / 2;
-
-                // Recortar los bordes del source rectangle si se sale de pantalla
-                // Ejemplo: si scaledWidth > windowWidth, recortamos srcRec.x y srcRec.width
-                float cropX = 0, cropY = 0;
-                float cropW = GAME_WIDTH, cropH = GAME_HEIGHT;
-                if (scaledWidth > windowWidth) {
-                    float over = (float)(scaledWidth - windowWidth) / scale;
-                    cropX = over / 2.0f;
-                    cropW -= over;
-                }
-                if (scaledHeight > windowHeight) {
-                    float over = (float)(scaledHeight - windowHeight) / scale;
-                    cropY = over / 2.0f;
-                    cropH -= over;
-                }
-                srcRec.x = cropX;
-                srcRec.y = cropY;
-                srcRec.width = cropW;
-                srcRec.height = -cropH; // Raylib invierte Y en RenderTexture
-            } else {
-                // Pixel perfect clásico (centrado, barras negras si es necesario)
-                int scaleX = windowWidth / GAME_WIDTH;
-                int scaleY = windowHeight / GAME_HEIGHT;
-                int scale = (scaleX < scaleY) ? scaleX : scaleY;
-                if (scale < 1) scale = 1;
-
-                scaledWidth = GAME_WIDTH * scale;
-                scaledHeight = GAME_HEIGHT * scale;
-                offsetX = (windowWidth - scaledWidth) / 2;
-                offsetY = (windowHeight - scaledHeight) / 2;
-                // srcRec es toda la textura
-            }
+            scaledWidth = GAME_WIDTH * scale;
+            scaledHeight = GAME_HEIGHT * scale;
+            offsetX = (windowWidth - scaledWidth) / 2;
+            offsetY = (windowHeight - scaledHeight) / 2;
+            // srcRec es toda la textura
         }
 
         BeginDrawing();
-            ClearBackground(BLACK); // Barras negras simétricas
+            ClearBackground(BLACK); // Barras negras simétricas si es necesario
             DrawTexturePro(
                 target.texture,
-                srcRec, // Puede estar recortado en stretch/crop
+                srcRec,
                 (Rectangle){ offsetX, offsetY, scaledWidth, scaledHeight },
                 (Vector2){ 0, 0 },
                 0.0f,
@@ -166,10 +122,9 @@ int main(void) {
 
 /*
     Maestro explica:
-    - El modo pixel perfect stretch elimina las barras negras en fullscreen, recortando los bordes para un llenado total y máxima nitidez.
-    - El modo pixel perfect clásico deja barras si la resolución del monitor no es múltiplo exacto.
-    - El modo suave llena todo el área, sacrificando nitidez.
-    - El usuario puede alternar entre estos modos en los ajustes, haciendo que el juego sea versátil y profesional en cualquier plataforma.
+    - El modo pixel perfect sólo escala por múltiplos enteros y deja barras negras si el monitor no es múltiplo exacto.
+    - El modo suave rellena todo, sacrificando nitidez.
     - El cálculo de escalado y centrado es completamente independiente para ventana y pantalla completa.
-    - Este enfoque es robusto, multiplataforma y listo para producción.
+    - El usuario alterna entre pixel perfect y suave desde los ajustes.
+    - El código está listo para producción y multiplataforma.
 */
