@@ -11,11 +11,11 @@
 #define GAME_HEIGHT 540
 
 /*
-    Solución profesional al problema de escalado pixel perfect tras cambiar a pantalla completa:
-    - Al cambiar a pantalla completa (ya sea por teclado o por botón), Raylib puede tardar un frame en reportar la resolución real del monitor.
-    - Por eso, tras cada cambio de modo, saltamos el frame actual para asegurar que en el siguiente frame los valores serán correctos.
-    - Esto garantiza que el escalado pixel perfect en pantalla completa SIEMPRE se recalcula usando la resolución real del monitor,
-      ignorando completamente el tamaño previo de la ventana. El botón en ajustes funciona bien, no necesita cambios.
+    Solución definitiva al escalado pixel perfect y pantalla completa:
+    - El cálculo de tamaño y escalado se realiza SIEMPRE en cada frame.
+    - El cambio a pantalla completa es inmediato, sin saltar ningún frame.
+    - El botón y la tecla solo llaman a ToggleFullscreen(), toda la lógica de escalado está aquí.
+    - El juego nunca entra en bucle ni se bloquea.
 */
 
 int main(void) {
@@ -31,31 +31,10 @@ int main(void) {
     SetTargetFPS(60);
     SceneManager_Init();
 
-    // Variables para detectar cambio de modo y saltar un frame tras pantalla completa
-    bool wasFullscreen = IsWindowFullscreen();
-    bool skipFrameAfterFullscreen = false;
-
     while (!WindowShouldClose()) {
         // Toggle pantalla completa con F o desde el botón de ajustes (ambos llaman a ToggleFullscreen)
         if (IsKeyPressed(KEY_F)) {
             ToggleFullscreen();
-            skipFrameAfterFullscreen = true; // Marca que debemos saltar el frame actual
-        }
-
-        // Detecta si el modo ha cambiado (ventana <-> pantalla completa) por cualquier medio
-        bool nowFullscreen = IsWindowFullscreen();
-        if (nowFullscreen != wasFullscreen) {
-            // Si el cambio se hizo por botón en ajustes, también saltamos el frame
-            skipFrameAfterFullscreen = true;
-            wasFullscreen = nowFullscreen;
-        }
-
-        // Si acabamos de cambiar a pantalla completa/ventana, saltamos el frame
-        if (skipFrameAfterFullscreen) {
-            skipFrameAfterFullscreen = false;
-            // Actualiza la lógica pero NO dibuja nada este frame
-            SceneManager_Update();
-            continue;
         }
 
         SceneManager_Update();
