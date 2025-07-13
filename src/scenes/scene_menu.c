@@ -11,6 +11,7 @@ static bool fontLoaded = false;
 
 // Callbacks para los botones
 static void onStart(void) {
+    SceneManager_Change(SCENE_SELECT);
     // Aquí cambiarías a la escena de juego (cuando esté implementada)
 }
 static void onSettings(void) {
