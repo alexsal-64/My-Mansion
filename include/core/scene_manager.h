@@ -5,6 +5,7 @@ typedef enum {
     SCENE_TRANSITION,
     SCENE_MENU,
     SCENE_SETTINGS,
+    SCENE_SELECT,
     // Agrega aquí más escenas en el futuro
 } SceneID;
 
