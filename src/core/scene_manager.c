@@ -2,6 +2,7 @@
 #include "effects/transition_circle.h"
 #include "scenes/scene_menu.h"
 #include "scenes/scene_settings.h"
+#include "scenes/scene_select.h
 #include <raylib.h>
 
 static SceneID currentScene;
@@ -30,6 +31,9 @@ void SceneManager_Update(void) {
         case SCENE_SETTINGS:
             SceneSettings_Update();
             break;
+        case SCENE_SELECT:
+            SceneSelect_Update();
+            break;
     }
 }
 
@@ -51,6 +55,9 @@ void SceneManager_Draw(void) {
         case SCENE_SETTINGS:
             SceneSettings_Draw();
             break;
+        case SCENE_SELECT:
+            SceneSelect_Draw();
+            break;
     }
 }
 
@@ -64,6 +71,7 @@ void SceneManager_Change(SceneID newScene) {
         case SCENE_TRANSITION: TransitionCircle_Init(); break;
         case SCENE_MENU: SceneMenu_Init(); break;
         case SCENE_SETTINGS: SceneSettings_Init(); break;
+        case SCENE_SETTINGS: SceneSelect_Init(); break;
     }
 }
 
