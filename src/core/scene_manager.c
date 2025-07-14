@@ -2,7 +2,7 @@
 #include "effects/transition_circle.h"
 #include "scenes/scene_menu.h"
 #include "scenes/scene_settings.h"
-#include "scenes/scene_select.h
+#include "scenes/scene_select.h"
 #include <raylib.h>
 
 static SceneID currentScene;
