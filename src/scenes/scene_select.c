@@ -57,7 +57,7 @@ void SceneSelect_Draw(void) {
     float titleSize = 56;
     float titleSpacing = 5;
     Vector2 titleDim = MeasureTextEx(selectFontTitle, title, titleSize, titleSpacing);
-    DrawTextEx(selectFontTitle, title, (Vector2){(screenWidth-titleDim.x)/2, LOGO_SPACE}, titleSize, titleSpacing, DARKGRAY);
+    DrawTextEx(selectFontTitle, title, (Vector2){(screenWidth-titleDim.x)/2, LOGO_SPACE_SELECT}, titleSize, titleSpacing, DARKGRAY);
 
     Menu_Draw(&selectMenu, screenWidth);
 }
