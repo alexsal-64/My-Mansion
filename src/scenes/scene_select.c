@@ -22,9 +22,10 @@ static MenuButton selectButtons[] = {
 };
 static MenuDef selectMenu;
 
-#define MENU_BG_COLOR_SELECT CLITERAL(Color){ 200, 200, 200, 255 }
-#define LOGO_SPACE_SELECT 90
-#define OPTION_SPACE_SELECT 68
+// Constantes con alcance de archivo
+static const Color MENU_BG_COLOR_SELECT = { 200,200,200,255 };
+static const int   LOGO_SPACE_SELECT    = 90;
+static const int   OPTION_SPACE_SELECT  = 68;
 
 // Fuente usada
 void SceneSelect_Init(void) {
