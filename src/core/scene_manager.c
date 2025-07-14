@@ -71,7 +71,7 @@ void SceneManager_Change(SceneID newScene) {
         case SCENE_TRANSITION: TransitionCircle_Init(); break;
         case SCENE_MENU: SceneMenu_Init(); break;
         case SCENE_SETTINGS: SceneSettings_Init(); break;
-        case SCENE_SETTINGS: SceneSelect_Init(); break;
+        case SCENE_SELECT: SceneSelect_Init(); break;
     }
 }
 
