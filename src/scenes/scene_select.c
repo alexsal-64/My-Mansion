@@ -35,7 +35,7 @@ void SceneSelect_Init(void) {
         fontLoaded = true;
     }
   // El menu inicia donde termina el titulo (56 el tamano)
-    Menu_Init(&selectMenu, selectButtons, 2, selectFontButton, 38, OPTION_SPACE, LOGO_SPACE+56+60);
+    Menu_Init(&selectMenu, selectButtons, 2, selectFontButton, 38, OPTION_SPACE_SELECT, LOGO_SPACE_SELECT+56+60);
 }
 
 // llamado de actualizacion
