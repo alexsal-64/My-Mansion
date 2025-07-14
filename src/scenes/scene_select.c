@@ -27,7 +27,7 @@ static MenuDef selectMenu;
 #define OPTION_SPACE 68
 
 // Fuente usada
-void SceneMenu_Init(void) {
+void SceneSelect_Init(void) {
     if (!fontLoaded) {
         selectFontTitle  = LoadFontEx("assets/fonts/LuckiestGuy-Regular.ttf", 56, 0, 0);
         selectFontButton = LoadFontEx("assets/fonts/LuckiestGuy-Regular.ttf", 38, 0, 0);
