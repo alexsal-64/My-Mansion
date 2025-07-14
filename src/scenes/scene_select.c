@@ -50,7 +50,7 @@ void SceneSelect_Update(void) {
 void SceneSelect_Draw(void) {
     int screenWidth = 960;
     int screenHeight = 540;
-    ClearBackground(MENU_BG_COLOR);
+    ClearBackground(MENU_BG_COLOR_SELECT);
 
     // Titulo
     const char *title = "Test Seleccion de eventos";
