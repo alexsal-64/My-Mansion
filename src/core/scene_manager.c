@@ -45,6 +45,8 @@ void SceneManager_Draw(void) {
                 SceneMenu_Draw();
             } else if (nextScene == SCENE_SETTINGS) {
                 SceneSettings_Draw();
+            } else if (nextScene == SCENE_SELECT) {
+                SceneSelect_Draw();
             }
             // Encima dibuja la transición circular
             TransitionCircle_Draw();
